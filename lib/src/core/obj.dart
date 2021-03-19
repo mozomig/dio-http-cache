@@ -1,8 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'obj.g.dart';
-
-@JsonSerializable()
 class CacheObj {
   String key;
   String subKey;
@@ -39,8 +36,15 @@ class CacheObj {
   _convertDuration(Duration duration) =>
       DateTime.now().add(duration).millisecondsSinceEpoch;
 
-  factory CacheObj.fromJson(Map<String, dynamic> json) =>
-      _$CacheObjFromJson(json);
-
-  toJson() => _$CacheObjToJson(this);
+  factory CacheObj.fromJson(Map<String, dynamic> json) {
+    return CacheObj(
+      json['key'] as String,
+      (json['content'] as List)?.map((e) => e as int)?.toList(),
+      subKey: json['subKey'] as String,
+      statusCode: json['statusCode'] as int,
+      headers: (json['headers'] as List)?.map((e) => e as int)?.toList(),
+    )
+      ..maxAgeDate = json['max_age_date'] as int
+      ..maxStaleDate = json['max_stale_date'] as int;
+  }
 }
