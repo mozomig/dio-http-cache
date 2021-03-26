@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_http_cache/src/core/config.dart';
 import 'package:dio_http_cache/src/core/manager.dart';
 import 'package:dio_http_cache/src/core/obj.dart';
+import 'package:flutter/cupertino.dart';
 
 const DIO_CACHE_KEY_TRY_CACHE = "dio_cache_try_cache";
 const DIO_CACHE_KEY_MAX_AGE = "dio_cache_max_age";
@@ -43,22 +44,24 @@ class DioCacheManager {
     return _interceptor;
   }
 
-  _onRequest(RequestOptions options, handler) async {
+  _onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     if ((options.extra[DIO_CACHE_KEY_TRY_CACHE] ?? false) != true) {
-      return options;
+      handler.next(options);
     }
     if (true == options.extra[DIO_CACHE_KEY_FORCE_REFRESH]) {
-      return options;
+      handler.next(options);
     }
     var responseDataFromCache = await _pullFromCacheBeforeMaxAge(options);
     if (null != responseDataFromCache) {
-      return _buildResponse(
-          responseDataFromCache, responseDataFromCache?.statusCode, options);
+      handler.resolve(
+        _buildResponse(
+            responseDataFromCache, responseDataFromCache?.statusCode, options),
+      );
     }
-    return options;
+    handler.next(options);
   }
 
-  _onResponse(Response response, handler) async {
+  _onResponse(Response response, ResponseInterceptorHandler handler) async {
     if ((response.requestOptions.extra[DIO_CACHE_KEY_TRY_CACHE] ?? false) ==
             true &&
         response.statusCode >= 200 &&
@@ -68,18 +71,18 @@ class DioCacheManager {
         response.extra[DIO_CACHE_HEADER_KEY_NETWORK_RESULT](response);
       }
     }
-    return response;
+    handler.next(response);
   }
 
-  _onError(DioError e, handler) async {
+  _onError(DioError e, ErrorInterceptorHandler handler) async {
     if ((e.requestOptions.extra[DIO_CACHE_KEY_TRY_CACHE] ?? false) == true) {
       var responseDataFromCache =
           await _pullFromCacheBeforeMaxStale(e.requestOptions);
       if (null != responseDataFromCache)
-        return _buildResponse(responseDataFromCache,
-            responseDataFromCache?.statusCode, e.requestOptions);
+        handler.resolve(_buildResponse(responseDataFromCache,
+            responseDataFromCache?.statusCode, e.requestOptions));
     }
-    return e;
+    handler.reject(e);
   }
 
   Response _buildResponse(
