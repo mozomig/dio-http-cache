@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:dio/dio.dart';
 import 'package:dio_http_cache/src/manager_dio.dart';
 
@@ -48,7 +50,7 @@ Options buildConfigurableCacheOptions({
   Function networkResult,
 }) {
   if (null == options) {
-    options = Options();
+    options = Options(extra: HashMap());
   } else if (options.responseType == ResponseType.stream) {
     throw Exception("ResponseType.stream is not supported");
   }

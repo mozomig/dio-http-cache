@@ -65,7 +65,7 @@ class DioCacheManager {
         response.statusCode < 300) {
       await _pushToCache(response);
       if (null != response.extra[DIO_CACHE_HEADER_KEY_NETWORK_RESULT]) {
-        response.extra[DIO_CACHE_HEADER_KEY_NETWORK_RESULT](response.data);
+        response.extra[DIO_CACHE_HEADER_KEY_NETWORK_RESULT](response);
       }
     }
     return response;
