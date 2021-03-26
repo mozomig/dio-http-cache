@@ -13,6 +13,8 @@ const DIO_CACHE_KEY_PRIMARY_KEY = "dio_cache_primary_key";
 const DIO_CACHE_KEY_SUB_KEY = "dio_cache_sub_key";
 const DIO_CACHE_KEY_FORCE_REFRESH = "dio_cache_force_refresh";
 const DIO_CACHE_HEADER_KEY_DATA_SOURCE = "dio_cache_header_key_data_source";
+const DIO_CACHE_HEADER_KEY_NETWORK_RESULT =
+    "dio_cache_header_key_network_RESULT";
 
 typedef _ParseHeadCallback = void Function(
     Duration _maxAge, Duration _maxStale);
@@ -33,7 +35,10 @@ class DioCacheManager {
   get interceptor {
     if (null == _interceptor) {
       _interceptor = InterceptorsWrapper(
-          onRequest: _onRequest, onResponse: _onResponse, onError: _onError);
+        onRequest: _onRequest,
+        onResponse: _onResponse,
+        onError: _onError,
+      );
     }
     return _interceptor;
   }
@@ -54,17 +59,22 @@ class DioCacheManager {
   }
 
   _onResponse(Response response, handler) async {
-    if ((response.requestOptions.extra[DIO_CACHE_KEY_TRY_CACHE] ?? false) == true &&
+    if ((response.requestOptions.extra[DIO_CACHE_KEY_TRY_CACHE] ?? false) ==
+            true &&
         response.statusCode >= 200 &&
         response.statusCode < 300) {
       await _pushToCache(response);
+      if (null != response.extra[DIO_CACHE_HEADER_KEY_NETWORK_RESULT]) {
+        response.extra[DIO_CACHE_HEADER_KEY_NETWORK_RESULT](response.data);
+      }
     }
     return response;
   }
 
   _onError(DioError e, handler) async {
     if ((e.requestOptions.extra[DIO_CACHE_KEY_TRY_CACHE] ?? false) == true) {
-      var responseDataFromCache = await _pullFromCacheBeforeMaxStale(e.requestOptions);
+      var responseDataFromCache =
+          await _pullFromCacheBeforeMaxStale(e.requestOptions);
       if (null != responseDataFromCache)
         return _buildResponse(responseDataFromCache,
             responseDataFromCache?.statusCode, e.requestOptions);

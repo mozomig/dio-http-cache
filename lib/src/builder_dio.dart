@@ -17,29 +17,36 @@ Options buildServiceCacheOptions(
         forceRefresh: forceRefresh);
 
 /// build a normal cache options
-Options buildCacheOptions(Duration maxAge,
-        {Duration maxStale,
-        String primaryKey,
-        String subKey,
-        Options options,
-        bool forceRefresh}) =>
+Options buildCacheOptions(
+  Duration maxAge, {
+  Duration maxStale,
+  String primaryKey,
+  String subKey,
+  Options options,
+  bool forceRefresh,
+  Function networkResult,
+}) =>
     buildConfigurableCacheOptions(
-        maxAge: maxAge,
-        options: options,
-        primaryKey: primaryKey,
-        subKey: subKey,
-        maxStale: maxStale,
-        forceRefresh: forceRefresh);
+      maxAge: maxAge,
+      options: options,
+      primaryKey: primaryKey,
+      subKey: subKey,
+      maxStale: maxStale,
+      forceRefresh: forceRefresh,
+      networkResult: networkResult,
+    );
 
 /// if null==maxAge, will try to get maxAge and maxStale from response headers.
 /// local settings will always overview the value get from service.
-Options buildConfigurableCacheOptions(
-    {Options options,
-    Duration maxAge,
-    Duration maxStale,
-    String primaryKey,
-    String subKey,
-    bool forceRefresh}) {
+Options buildConfigurableCacheOptions({
+  Options options,
+  Duration maxAge,
+  Duration maxStale,
+  String primaryKey,
+  String subKey,
+  bool forceRefresh,
+  Function networkResult,
+}) {
   if (null == options) {
     options = Options();
   } else if (options.responseType == ResponseType.stream) {
@@ -60,6 +67,10 @@ Options buildConfigurableCacheOptions(
   }
   if (null != forceRefresh) {
     options.extra.addAll({DIO_CACHE_KEY_FORCE_REFRESH: forceRefresh});
+  }
+
+  if (null != networkResult) {
+    options.extra.addAll({DIO_CACHE_HEADER_KEY_NETWORK_RESULT: networkResult});
   }
   return options;
 }
