@@ -58,7 +58,6 @@ class DioCacheManager {
             responseDataFromCache, responseDataFromCache?.statusCode, options),
       );
     }
-    handler.next(options);
   }
 
   _onResponse(Response response, ResponseInterceptorHandler handler) async {
