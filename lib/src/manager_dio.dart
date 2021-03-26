@@ -57,6 +57,7 @@ class DioCacheManager {
         _buildResponse(
             responseDataFromCache, responseDataFromCache?.statusCode, options),
       );
+      handler.next(options);
     }
   }
 
